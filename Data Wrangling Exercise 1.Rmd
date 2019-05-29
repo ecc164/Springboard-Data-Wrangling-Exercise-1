@@ -1,0 +1,44 @@
+---
+title: "Data Wrangling Exercise"
+author: "Eric Campbell"
+date: "5/28/2019"
+output: html_document
+---
+
+# Import Data and Set Up
+> library(tidyr)
+> library(dplyr)
+> library(readxl)
+> refine_original_csv <- read_excel("refine_original.csv.xlsx")
+> View(refine_original_csv)
+
+# Clean up Column Names
+> refine_original_csv %>% arrange(company) %>% print(n=Inf)
+> refine_original_csv[1:7,1] <- "akzo"
+> refine_original_csv[8:16,1] <- "philips"
+> refine_original_csv[17:20,1] <- "unilever"
+> refine_original_csv[21:25,1] <- "van houten"
+> refine_original_csv %>% print(n=Inf)
+
+# Seperate Product code / number into two new columns, product_code and product_number
+> refine_original_csv <- refine_original_csv %>% separate(col = "Product code / number", into = c("product_code", "product_number"), sep = "-")
+
+# Add Column for Product Category: p = Smartphone, v = TV, x = Laptop, q = Tablet
+> refine_original_csv <- refine_original_csv %>% rename("product_category" = "product_code")
+> refine_original_csv %>% arrange(product_category) %>% print(n=Inf)
+> refine_original_csv[1:6,2] <- "Smartphone"
+> refine_original_csv[7:11,2] <- "Tablet"
+> refine_original_csv[12:17,2] <- "TV"
+> refine_original_csv[18:25,2] <- "Laptop"
+
+# Add Full Address for Geocoding: create a new column full_address that concatenates the three address fields (address, city, country) separated by commas
+>refine_original_csv <- refine_original_csv %>% unite(address, city, country, col = "full_address", sep = ",")
+
+# Create Dummy Variables for company and product category: Create dummy binary variables for each of them with the prefix company_ and product_ i.e.,
+## Add four binary (1 or 0) columns for company: company_philips, company_akzo, company_van_houten and company_unilever.
+## Add four binary (1 or 0) columns for product_category: product_smartphone, product_tv, product_laptop and product_tablet.
+> install.packages("fastDummies")
+> library(fastDummies)
+> refine_original_csv <- dummy_cols(refine_original_csv, select_columns = c("company", "product_category"))
+> refine_original_csv <- refine_original_csv %>% rename("product_smartphone" = "product_category_Smartphone") %>% rename("product_tv" = "product_category_TV") %>% rename("product_laptop" = "product_category_Laptop") %>% rename("product_tablet" = "product_category_Tablet")
+
